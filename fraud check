@@ -1,0 +1,1304 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 88,
+   "id": "a696c320",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2022-11-22T07:24:33.062377Z",
+     "start_time": "2022-11-22T07:24:33.050156Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "import pandas as pd \n",
+    "import numpy as np\n",
+    "import matplotlib.pyplot as plt\n",
+    "from sklearn.model_selection import KFold\n",
+    "from sklearn.model_selection import cross_val_score\n",
+    "from sklearn.tree import DecisionTreeClassifier\n",
+    "from sklearn import preprocessing"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 89,
+   "id": "b274d563",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2022-11-22T07:24:33.081742Z",
+     "start_time": "2022-11-22T07:24:33.066783Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "fraud=pd.read_csv(\"Fraud_check (1).csv\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 90,
+   "id": "8c76ee9e",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2022-11-22T07:24:33.114854Z",
+     "start_time": "2022-11-22T07:24:33.085416Z"
+    }
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Undergrad</th>\n",
+       "      <th>Marital.Status</th>\n",
+       "      <th>Taxable.Income</th>\n",
+       "      <th>City.Population</th>\n",
+       "      <th>Work.Experience</th>\n",
+       "      <th>Urban</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>NO</td>\n",
+       "      <td>Single</td>\n",
+       "      <td>68833</td>\n",
+       "      <td>50047</td>\n",
+       "      <td>10</td>\n",
+       "      <td>YES</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>YES</td>\n",
+       "      <td>Divorced</td>\n",
+       "      <td>33700</td>\n",
+       "      <td>134075</td>\n",
+       "      <td>18</td>\n",
+       "      <td>YES</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>NO</td>\n",
+       "      <td>Married</td>\n",
+       "      <td>36925</td>\n",
+       "      <td>160205</td>\n",
+       "      <td>30</td>\n",
+       "      <td>YES</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>YES</td>\n",
+       "      <td>Single</td>\n",
+       "      <td>50190</td>\n",
+       "      <td>193264</td>\n",
+       "      <td>15</td>\n",
+       "      <td>YES</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>NO</td>\n",
+       "      <td>Married</td>\n",
+       "      <td>81002</td>\n",
+       "      <td>27533</td>\n",
+       "      <td>28</td>\n",
+       "      <td>NO</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>595</th>\n",
+       "      <td>YES</td>\n",
+       "      <td>Divorced</td>\n",
+       "      <td>76340</td>\n",
+       "      <td>39492</td>\n",
+       "      <td>7</td>\n",
+       "      <td>YES</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>596</th>\n",
+       "      <td>YES</td>\n",
+       "      <td>Divorced</td>\n",
+       "      <td>69967</td>\n",
+       "      <td>55369</td>\n",
+       "      <td>2</td>\n",
+       "      <td>YES</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>597</th>\n",
+       "      <td>NO</td>\n",
+       "      <td>Divorced</td>\n",
+       "      <td>47334</td>\n",
+       "      <td>154058</td>\n",
+       "      <td>0</td>\n",
+       "      <td>YES</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>598</th>\n",
+       "      <td>YES</td>\n",
+       "      <td>Married</td>\n",
+       "      <td>98592</td>\n",
+       "      <td>180083</td>\n",
+       "      <td>17</td>\n",
+       "      <td>NO</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>599</th>\n",
+       "      <td>NO</td>\n",
+       "      <td>Divorced</td>\n",
+       "      <td>96519</td>\n",
+       "      <td>158137</td>\n",
+       "      <td>16</td>\n",
+       "      <td>NO</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>600 rows × 6 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "    Undergrad Marital.Status  Taxable.Income  City.Population  \\\n",
+       "0          NO         Single           68833            50047   \n",
+       "1         YES       Divorced           33700           134075   \n",
+       "2          NO        Married           36925           160205   \n",
+       "3         YES         Single           50190           193264   \n",
+       "4          NO        Married           81002            27533   \n",
+       "..        ...            ...             ...              ...   \n",
+       "595       YES       Divorced           76340            39492   \n",
+       "596       YES       Divorced           69967            55369   \n",
+       "597        NO       Divorced           47334           154058   \n",
+       "598       YES        Married           98592           180083   \n",
+       "599        NO       Divorced           96519           158137   \n",
+       "\n",
+       "     Work.Experience Urban  \n",
+       "0                 10   YES  \n",
+       "1                 18   YES  \n",
+       "2                 30   YES  \n",
+       "3                 15   YES  \n",
+       "4                 28    NO  \n",
+       "..               ...   ...  \n",
+       "595                7   YES  \n",
+       "596                2   YES  \n",
+       "597                0   YES  \n",
+       "598               17    NO  \n",
+       "599               16    NO  \n",
+       "\n",
+       "[600 rows x 6 columns]"
+      ]
+     },
+     "execution_count": 90,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "fraud"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 91,
+   "id": "a8eef7cb",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2022-11-22T07:24:33.130050Z",
+     "start_time": "2022-11-22T07:24:33.118974Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "label_encoder = preprocessing.LabelEncoder()\n",
+    "fraud['Undergrad']= label_encoder.fit_transform(fraud['Undergrad'])\n",
+    "fraud['Marital.Status']= label_encoder.fit_transform(fraud['Marital.Status'])\n",
+    "fraud['Urban']= label_encoder.fit_transform(fraud['Urban'])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 92,
+   "id": "aab31cf7",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2022-11-22T07:24:33.154762Z",
+     "start_time": "2022-11-22T07:24:33.134504Z"
+    }
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Undergrad</th>\n",
+       "      <th>Marital.Status</th>\n",
+       "      <th>Taxable.Income</th>\n",
+       "      <th>City.Population</th>\n",
+       "      <th>Work.Experience</th>\n",
+       "      <th>Urban</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>0</td>\n",
+       "      <td>2</td>\n",
+       "      <td>68833</td>\n",
+       "      <td>50047</td>\n",
+       "      <td>10</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>33700</td>\n",
+       "      <td>134075</td>\n",
+       "      <td>18</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>36925</td>\n",
+       "      <td>160205</td>\n",
+       "      <td>30</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>1</td>\n",
+       "      <td>2</td>\n",
+       "      <td>50190</td>\n",
+       "      <td>193264</td>\n",
+       "      <td>15</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>81002</td>\n",
+       "      <td>27533</td>\n",
+       "      <td>28</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   Undergrad  Marital.Status  Taxable.Income  City.Population  \\\n",
+       "0          0               2           68833            50047   \n",
+       "1          1               0           33700           134075   \n",
+       "2          0               1           36925           160205   \n",
+       "3          1               2           50190           193264   \n",
+       "4          0               1           81002            27533   \n",
+       "\n",
+       "   Work.Experience  Urban  \n",
+       "0               10      1  \n",
+       "1               18      1  \n",
+       "2               30      1  \n",
+       "3               15      1  \n",
+       "4               28      0  "
+      ]
+     },
+     "execution_count": 92,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "fraud.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 93,
+   "id": "7f94e6ea",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2022-11-22T07:24:33.170284Z",
+     "start_time": "2022-11-22T07:24:33.158999Z"
+    }
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "['Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Risky', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Risky', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Risky', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Risky', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Risky', 'Risky', 'Good', 'Risky', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Risky', 'Risky', 'Risky', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Risky', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Risky', 'Risky', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Risky', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Risky', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Risky', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Risky', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Risky', 'Good', 'Risky', 'Risky', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Risky', 'Good', 'Risky', 'Good', 'Risky', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Risky', 'Risky', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Risky', 'Good', 'Risky', 'Good', 'Good', 'Risky', 'Good', 'Risky', 'Good', 'Risky', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Risky', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Risky', 'Good', 'Good', 'Risky', 'Risky', 'Risky', 'Good', 'Good', 'Good', 'Risky', 'Risky', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Risky', 'Risky', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Risky', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Risky', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good', 'Good']\n"
+     ]
+    }
+   ],
+   "source": [
+    "taxable_income=[]\n",
+    "for value in fraud[\"Taxable.Income\"]:\n",
+    "    if value <= 30000:\n",
+    "        taxable_income.append(\"Risky\")\n",
+    "    else:\n",
+    "        taxable_income.append(\"Good\")\n",
+    "        \n",
+    "print(taxable_income)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 94,
+   "id": "d2ee4288",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2022-11-22T07:24:33.202242Z",
+     "start_time": "2022-11-22T07:24:33.173209Z"
+    }
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Undergrad</th>\n",
+       "      <th>Marital.Status</th>\n",
+       "      <th>Taxable.Income</th>\n",
+       "      <th>City.Population</th>\n",
+       "      <th>Work.Experience</th>\n",
+       "      <th>Urban</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>0</td>\n",
+       "      <td>2</td>\n",
+       "      <td>68833</td>\n",
+       "      <td>50047</td>\n",
+       "      <td>10</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>33700</td>\n",
+       "      <td>134075</td>\n",
+       "      <td>18</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>36925</td>\n",
+       "      <td>160205</td>\n",
+       "      <td>30</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>1</td>\n",
+       "      <td>2</td>\n",
+       "      <td>50190</td>\n",
+       "      <td>193264</td>\n",
+       "      <td>15</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>81002</td>\n",
+       "      <td>27533</td>\n",
+       "      <td>28</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>595</th>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>76340</td>\n",
+       "      <td>39492</td>\n",
+       "      <td>7</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>596</th>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>69967</td>\n",
+       "      <td>55369</td>\n",
+       "      <td>2</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>597</th>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>47334</td>\n",
+       "      <td>154058</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>598</th>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>98592</td>\n",
+       "      <td>180083</td>\n",
+       "      <td>17</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>599</th>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>96519</td>\n",
+       "      <td>158137</td>\n",
+       "      <td>16</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>600 rows × 6 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "     Undergrad  Marital.Status  Taxable.Income  City.Population  \\\n",
+       "0            0               2           68833            50047   \n",
+       "1            1               0           33700           134075   \n",
+       "2            0               1           36925           160205   \n",
+       "3            1               2           50190           193264   \n",
+       "4            0               1           81002            27533   \n",
+       "..         ...             ...             ...              ...   \n",
+       "595          1               0           76340            39492   \n",
+       "596          1               0           69967            55369   \n",
+       "597          0               0           47334           154058   \n",
+       "598          1               1           98592           180083   \n",
+       "599          0               0           96519           158137   \n",
+       "\n",
+       "     Work.Experience  Urban  \n",
+       "0                 10      1  \n",
+       "1                 18      1  \n",
+       "2                 30      1  \n",
+       "3                 15      1  \n",
+       "4                 28      0  \n",
+       "..               ...    ...  \n",
+       "595                7      1  \n",
+       "596                2      1  \n",
+       "597                0      1  \n",
+       "598               17      0  \n",
+       "599               16      0  \n",
+       "\n",
+       "[600 rows x 6 columns]"
+      ]
+     },
+     "execution_count": 94,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "fraud2=fraud.copy()\n",
+    "fraud2"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 95,
+   "id": "d51d0137",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2022-11-22T07:24:33.217228Z",
+     "start_time": "2022-11-22T07:24:33.205437Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "t=pd.DataFrame(taxable_income)\n",
+    "t=t.rename({0:'tax1'},axis=1)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 96,
+   "id": "083e80fc",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2022-11-22T07:24:33.241567Z",
+     "start_time": "2022-11-22T07:24:33.221444Z"
+    }
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Undergrad</th>\n",
+       "      <th>Marital.Status</th>\n",
+       "      <th>Taxable.Income</th>\n",
+       "      <th>City.Population</th>\n",
+       "      <th>Work.Experience</th>\n",
+       "      <th>Urban</th>\n",
+       "      <th>tax1</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>0</td>\n",
+       "      <td>2</td>\n",
+       "      <td>68833</td>\n",
+       "      <td>50047</td>\n",
+       "      <td>10</td>\n",
+       "      <td>1</td>\n",
+       "      <td>Good</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>33700</td>\n",
+       "      <td>134075</td>\n",
+       "      <td>18</td>\n",
+       "      <td>1</td>\n",
+       "      <td>Good</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>36925</td>\n",
+       "      <td>160205</td>\n",
+       "      <td>30</td>\n",
+       "      <td>1</td>\n",
+       "      <td>Good</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>1</td>\n",
+       "      <td>2</td>\n",
+       "      <td>50190</td>\n",
+       "      <td>193264</td>\n",
+       "      <td>15</td>\n",
+       "      <td>1</td>\n",
+       "      <td>Good</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>81002</td>\n",
+       "      <td>27533</td>\n",
+       "      <td>28</td>\n",
+       "      <td>0</td>\n",
+       "      <td>Good</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   Undergrad  Marital.Status  Taxable.Income  City.Population  \\\n",
+       "0          0               2           68833            50047   \n",
+       "1          1               0           33700           134075   \n",
+       "2          0               1           36925           160205   \n",
+       "3          1               2           50190           193264   \n",
+       "4          0               1           81002            27533   \n",
+       "\n",
+       "   Work.Experience  Urban  tax1  \n",
+       "0               10      1  Good  \n",
+       "1               18      1  Good  \n",
+       "2               30      1  Good  \n",
+       "3               15      1  Good  \n",
+       "4               28      0  Good  "
+      ]
+     },
+     "execution_count": 96,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "fraud3=pd.concat([fraud2,t],axis=1)\n",
+    "fraud3.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 97,
+   "id": "03199f63",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2022-11-22T07:24:33.256849Z",
+     "start_time": "2022-11-22T07:24:33.246568Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "label_encoder = preprocessing.LabelEncoder()\n",
+    "fraud3['tax2']=label_encoder.fit_transform(fraud3['tax1'])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 98,
+   "id": "104440ce",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2022-11-22T07:24:33.281719Z",
+     "start_time": "2022-11-22T07:24:33.259956Z"
+    }
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Undergrad</th>\n",
+       "      <th>Marital.Status</th>\n",
+       "      <th>Taxable.Income</th>\n",
+       "      <th>City.Population</th>\n",
+       "      <th>Work.Experience</th>\n",
+       "      <th>Urban</th>\n",
+       "      <th>tax1</th>\n",
+       "      <th>tax2</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>0</td>\n",
+       "      <td>2</td>\n",
+       "      <td>68833</td>\n",
+       "      <td>50047</td>\n",
+       "      <td>10</td>\n",
+       "      <td>1</td>\n",
+       "      <td>Good</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>33700</td>\n",
+       "      <td>134075</td>\n",
+       "      <td>18</td>\n",
+       "      <td>1</td>\n",
+       "      <td>Good</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>36925</td>\n",
+       "      <td>160205</td>\n",
+       "      <td>30</td>\n",
+       "      <td>1</td>\n",
+       "      <td>Good</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>1</td>\n",
+       "      <td>2</td>\n",
+       "      <td>50190</td>\n",
+       "      <td>193264</td>\n",
+       "      <td>15</td>\n",
+       "      <td>1</td>\n",
+       "      <td>Good</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>81002</td>\n",
+       "      <td>27533</td>\n",
+       "      <td>28</td>\n",
+       "      <td>0</td>\n",
+       "      <td>Good</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>595</th>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>76340</td>\n",
+       "      <td>39492</td>\n",
+       "      <td>7</td>\n",
+       "      <td>1</td>\n",
+       "      <td>Good</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>596</th>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>69967</td>\n",
+       "      <td>55369</td>\n",
+       "      <td>2</td>\n",
+       "      <td>1</td>\n",
+       "      <td>Good</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>597</th>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>47334</td>\n",
+       "      <td>154058</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>Good</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>598</th>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>98592</td>\n",
+       "      <td>180083</td>\n",
+       "      <td>17</td>\n",
+       "      <td>0</td>\n",
+       "      <td>Good</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>599</th>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>96519</td>\n",
+       "      <td>158137</td>\n",
+       "      <td>16</td>\n",
+       "      <td>0</td>\n",
+       "      <td>Good</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>600 rows × 8 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "     Undergrad  Marital.Status  Taxable.Income  City.Population  \\\n",
+       "0            0               2           68833            50047   \n",
+       "1            1               0           33700           134075   \n",
+       "2            0               1           36925           160205   \n",
+       "3            1               2           50190           193264   \n",
+       "4            0               1           81002            27533   \n",
+       "..         ...             ...             ...              ...   \n",
+       "595          1               0           76340            39492   \n",
+       "596          1               0           69967            55369   \n",
+       "597          0               0           47334           154058   \n",
+       "598          1               1           98592           180083   \n",
+       "599          0               0           96519           158137   \n",
+       "\n",
+       "     Work.Experience  Urban  tax1  tax2  \n",
+       "0                 10      1  Good     0  \n",
+       "1                 18      1  Good     0  \n",
+       "2                 30      1  Good     0  \n",
+       "3                 15      1  Good     0  \n",
+       "4                 28      0  Good     0  \n",
+       "..               ...    ...   ...   ...  \n",
+       "595                7      1  Good     0  \n",
+       "596                2      1  Good     0  \n",
+       "597                0      1  Good     0  \n",
+       "598               17      0  Good     0  \n",
+       "599               16      0  Good     0  \n",
+       "\n",
+       "[600 rows x 8 columns]"
+      ]
+     },
+     "execution_count": 98,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "fraud3"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 99,
+   "id": "69cc3edb",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2022-11-22T07:24:33.296846Z",
+     "start_time": "2022-11-22T07:24:33.285898Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "x=fraud2.drop([\"Taxable.Income\"],axis=1)\n",
+    "y=fraud3[\"tax2\"]\n",
+    " "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 100,
+   "id": "74d25a28",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2022-11-22T07:24:33.321944Z",
+     "start_time": "2022-11-22T07:24:33.300523Z"
+    }
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Undergrad</th>\n",
+       "      <th>Marital.Status</th>\n",
+       "      <th>City.Population</th>\n",
+       "      <th>Work.Experience</th>\n",
+       "      <th>Urban</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>0</td>\n",
+       "      <td>2</td>\n",
+       "      <td>50047</td>\n",
+       "      <td>10</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>134075</td>\n",
+       "      <td>18</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>160205</td>\n",
+       "      <td>30</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>1</td>\n",
+       "      <td>2</td>\n",
+       "      <td>193264</td>\n",
+       "      <td>15</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "      <td>27533</td>\n",
+       "      <td>28</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>595</th>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>39492</td>\n",
+       "      <td>7</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>596</th>\n",
+       "      <td>1</td>\n",
+       "      <td>0</td>\n",
+       "      <td>55369</td>\n",
+       "      <td>2</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>597</th>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>154058</td>\n",
+       "      <td>0</td>\n",
+       "      <td>1</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>598</th>\n",
+       "      <td>1</td>\n",
+       "      <td>1</td>\n",
+       "      <td>180083</td>\n",
+       "      <td>17</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>599</th>\n",
+       "      <td>0</td>\n",
+       "      <td>0</td>\n",
+       "      <td>158137</td>\n",
+       "      <td>16</td>\n",
+       "      <td>0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>600 rows × 5 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "     Undergrad  Marital.Status  City.Population  Work.Experience  Urban\n",
+       "0            0               2            50047               10      1\n",
+       "1            1               0           134075               18      1\n",
+       "2            0               1           160205               30      1\n",
+       "3            1               2           193264               15      1\n",
+       "4            0               1            27533               28      0\n",
+       "..         ...             ...              ...              ...    ...\n",
+       "595          1               0            39492                7      1\n",
+       "596          1               0            55369                2      1\n",
+       "597          0               0           154058                0      1\n",
+       "598          1               1           180083               17      0\n",
+       "599          0               0           158137               16      0\n",
+       "\n",
+       "[600 rows x 5 columns]"
+      ]
+     },
+     "execution_count": 100,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "x"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 101,
+   "id": "af97b12a",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2022-11-22T07:24:33.337021Z",
+     "start_time": "2022-11-22T07:24:33.326424Z"
+    }
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0      0\n",
+       "1      0\n",
+       "2      0\n",
+       "3      0\n",
+       "4      0\n",
+       "      ..\n",
+       "595    0\n",
+       "596    0\n",
+       "597    0\n",
+       "598    0\n",
+       "599    0\n",
+       "Name: tax2, Length: 600, dtype: int32"
+      ]
+     },
+     "execution_count": 101,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "y"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "70548beb",
+   "metadata": {},
+   "source": [
+    "# Random Forest Model"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 102,
+   "id": "d333f634",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2022-11-22T07:24:33.354558Z",
+     "start_time": "2022-11-22T07:24:33.342040Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "from sklearn.ensemble import RandomForestClassifier"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "579d2bb3",
+   "metadata": {},
+   "source": [
+    "model1 with no. of decision trees= 100"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 116,
+   "id": "fdeeb673",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2022-11-22T07:31:22.841604Z",
+     "start_time": "2022-11-22T07:31:22.831890Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "num_trees = 100\n",
+    "max_features =3"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 117,
+   "id": "27696721",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2022-11-22T07:31:27.342319Z",
+     "start_time": "2022-11-22T07:31:25.172354Z"
+    }
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "0.7466666666666667\n"
+     ]
+    }
+   ],
+   "source": [
+    "kfold = KFold(n_splits=10, random_state=7, shuffle = True)\n",
+    "model = RandomForestClassifier(n_estimators=num_trees, max_features=max_features)\n",
+    "results = cross_val_score(model, x, y, cv=kfold)#Acuuracy of subsamples\n",
+    "print(results.mean())#Average accuracy"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "06628c52",
+   "metadata": {},
+   "source": [
+    "model2 with no. of decision trees= 150"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 114,
+   "id": "6b030005",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2022-11-22T07:31:12.288948Z",
+     "start_time": "2022-11-22T07:31:12.279129Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "num_trees = 150\n",
+    "max_features = 3"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 115,
+   "id": "3ec855e0",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2022-11-22T07:31:16.814770Z",
+     "start_time": "2022-11-22T07:31:15.454915Z"
+    }
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "0.7483333333333333\n"
+     ]
+    }
+   ],
+   "source": [
+    "kfold = KFold(n_splits=10, random_state=8, shuffle = True)\n",
+    "model2 = RandomForestClassifier(n_estimators=num_trees, max_features=max_features)\n",
+    "results = cross_val_score(model, x, y, cv=kfold)\n",
+    "print(results.mean())#Average accuracy"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "13b77a04",
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2022-11-22T07:39:39.733002Z",
+     "start_time": "2022-11-22T07:39:39.712112Z"
+    }
+   },
+   "source": [
+    "conclusion: Here the average accuracy of randomforest model1 is similar to model2."
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.9.12"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
